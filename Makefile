@@ -6,6 +6,13 @@ up:
 down:
 	docker compose down
 
+# Laravel用 パーミッションの調整
+permissions:
+	docker compose exec -u root php sh -c '\
+		chgrp -R www-data storage bootstrap/cache && \
+		chmod -R g+rwX storage bootstrap/cache && \
+		find storage bootstrap/cache -type d -exec chmod g+s {} \;'
+
 # プロジェクト専用クリーン（最も安全）
 clean:
 	docker compose down --rmi local --volumes
