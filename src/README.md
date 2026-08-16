@@ -31,13 +31,19 @@ Docker環境の構成、起動方法、停止方法については、[リポジ�
 4. `src/.env`のデータベース設定をDocker Compose環境に合わせます。
 
     ```dotenv
+    APP_URL=http://localhost:<WEB_PORT>
+
     DB_CONNECTION=mysql
     DB_HOST=mysql
     DB_PORT=3306
     DB_DATABASE=app
     DB_USERNAME=app
     DB_PASSWORD=app
+
+    REDIS_HOST=redis
     ```
+
+    `APP_URL` の `<WEB_PORT>` は、リポジトリ直下の `.env` で設定したポート番号に置き換えてください。
 
 5. アプリケーションキーを生成し、Laravelの書き込み用ディレクトリのパーミッションを調整します。
 
@@ -104,10 +110,14 @@ http://localhost:<WEB_PORT>/
 docker compose exec php composer test
 ```
 
-テストでは`app_testing`データベースを使用します。未作成の場合は、テスト実行前に作成してください。
+テストでは`app_testing`データベースを使用します。このデータベースは、MySQLのnamed volumeが空の初回起動時に
+`docker/mysql/init/init.sql`で自動作成されます。通常の実行は`app`、テストは`app_testing`を使います。
+
+すでに`mysql_data`がある環境では、初回起動用のSQLは再実行されません。
+その場合は次を一度実行してください。
 
 ```bash
-docker compose exec mysql mysql -u root -proot -e "CREATE DATABASE IF NOT EXISTS app_testing;"
+docker compose exec mysql mysql -u root -proot -e "CREATE DATABASE IF NOT EXISTS app_testing; GRANT ALL PRIVILEGES ON app_testing.* TO 'app'@'%';"
 ```
 
 ## 主な技術構成

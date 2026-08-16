@@ -4,19 +4,20 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTodoRequest extends FormRequest
+class TodoRequest extends FormRequest
 {
     /**
-     * ToDoを追加できるかを判定します。
+     * ToDoを追加または更新できるかを判定します。
      */
     public function authorize(): bool
     {
-        // ログインの確認はルートのauthミドルウェアで行うため、ここでは許可します。
+        // ログインの確認はルートのauthミドルウェア、
+        // 所有者の確認はControllerで行うため、ここでは許可します。
         return true;
     }
 
     /**
-     * ToDo追加時の入力ルールを返します。
+     * ToDoの追加・更新時の入力ルールを返します。
      *
      * @return array<string, array<int, string>>
      */

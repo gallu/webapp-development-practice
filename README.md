@@ -29,13 +29,12 @@ composer create-project gallu/docker-app-skeleton [my-app-name]
 │   │   └─ default.conf
 │   ├─ php/
 │   │   └─ Dockerfile
-│   ├─ mysql/
-│   │   └─ Dockerfile（必要に応じて配置）
-│   └─ redis/
-│       └─ Dockerfile（必要に応じて配置）
+│   └─ mysql/
+│       └─ init/（初回起動時に app_testing を作成）
 ├─ storage/
-│   ├─ db/
-│   └─ logs/
+│   ├─ db/（bind mount に切り替えたときに使用）
+│   ├─ logs/
+│   └─ cache/
 ├─ src/
 │   ├─ app/
 │   ├─ database/
@@ -67,9 +66,15 @@ sh ./scripts/setup.sh
 
 ## 起動
 
+先にリポジトリ直下で `.env.sample` を `.env` にコピーし、
+`COMPOSE_PROJECT_NAME` と `WEB_PORT` を環境に合わせて変更してください。
+
 ```
+cp .env.sample .env
 docker compose up --build -d
 ```
+
+`.env.sample` の初期値では `WEB_PORT=8081` です。
 
 ## 停止
 
@@ -79,9 +84,13 @@ docker compose down
 
 ## PHP へのアクセス
 
+`.env` の `WEB_PORT` で公開したポートにアクセスします。
+
 ```
-http://localhost:8080/
+http://localhost:<WEB_PORT>/
 ```
+
+初期値のままなら `http://localhost:8081/` です。
 
 ---
 
@@ -104,8 +113,8 @@ src/public/test_mysql.php:
 try {
     $pdo = new PDO(
         'mysql:host=mysql;dbname=app;charset=utf8mb4',
-        'root',
-        'rootpassword',
+        'app',
+        'app',
         [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ]
     );
 
@@ -147,7 +156,7 @@ REDIS_PORT=6379
 
 ### down
 現在の docker-compose プロジェクトで起動中のコンテナを停止し、ネットワークを削除します。
-永続化ボリュームは削除しません。
+MySQLのnamed volume（`mysql_data`）は削除しません。
 
     make down
 
@@ -163,7 +172,7 @@ Laravelが書き込む`src/storage/`と`src/bootstrap/cache/`について、PHP-
 - コンテナ
 - ネットワーク
 - このプロジェクト内でビルドされたイメージ
-- このプロジェクト内で作成されたボリューム
+- このプロジェクト内で作成されたボリューム（MySQLの`mysql_data`を含む）
 
 他プロジェクトには影響しません。
 
@@ -198,4 +207,10 @@ Docker のあらゆる不要データを削除しますが、他プロジェク�
 ## 注意事項
 
 - `src/` のLaravelアプリケーションはGit管理対象です。
-- `storage/` は永続化領域です（DB・ログなど）。
+- MySQLのデータはnamed volume（`mysql_data`）に保存されます。
+  `make down`では残り、`make clean`や`make disintegrate`では削除されます。
+- `storage/` はログなどの作業領域です。既定ではデータベースファイルは置きません。
+- ホストの`storage/db`に永続化（bind mount）する場合は、次を変更します。
+  - `docker-compose.yml`: `./storage/db:/var/lib/mysql` のコメントを外し、`mysql_data:/var/lib/mysql` をコメントアウトする。末尾の `volumes: mysql_data` も使わない。
+  - `scripts/setup.sh`: `mkdir -p storage/db` のコメントを外す。
+  - `.gitignore` の `/storage/db/` 向けルールはそのままでよい（中身はコミットしない）。
