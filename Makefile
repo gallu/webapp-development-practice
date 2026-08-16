@@ -1,4 +1,4 @@
-.PHONY: up down clean exec-php exec-mysql ps logs all-clean disintegrate
+.PHONY: up down permissions clean exec-php exec-mysql ps logs all-clean disintegrate
 
 up:
 	docker compose up -d --build
@@ -40,4 +40,3 @@ all-clean:
 # Docker 全域の完全破壊
 disintegrate:
 	docker system prune -a --volumes -f
-

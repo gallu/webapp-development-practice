@@ -1,58 +1,123 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 授業用ToDoリスト
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravelの基本的なWebアプリケーション開発を学ぶためのToDoリストです。
+ユーザー認証、データベース操作、入力値の検証、ユーザーごとのデータ管理を扱います。
 
-## About Laravel
+Docker環境の構成、起動方法、停止方法については、[リポジトリ直下のREADME](../README.md)を参照してください。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## インストール
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+コマンドはリポジトリ直下で実行します。
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Docker Compose用の環境設定ファイルを作成します。
 
-## Learning Laravel
+    ```bash
+    cp .env.sample .env
+    ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. `.env`の`COMPOSE_PROJECT_NAME`と`WEB_PORT`を環境に合わせて変更し、コンテナを起動します。
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    ```bash
+    make up
+    ```
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+3. PHPの依存パッケージとLaravelの環境設定ファイルを準備します。
 
-## Agentic Development
+    ```bash
+    docker compose exec php composer install
+    cp src/.env.example src/.env
+    ```
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+4. `src/.env`のデータベース設定をDocker Compose環境に合わせます。
 
-```bash
-composer require laravel/boost --dev
+    ```dotenv
+    DB_CONNECTION=mysql
+    DB_HOST=mysql
+    DB_PORT=3306
+    DB_DATABASE=app
+    DB_USERNAME=app
+    DB_PASSWORD=app
+    ```
 
-php artisan boost:install
+5. アプリケーションキーを生成し、Laravelの書き込み用ディレクトリのパーミッションを調整します。
+
+    ```bash
+    docker compose exec php php artisan key:generate
+    make permissions
+    ```
+
+6. テーブルと授業用ユーザーを作成します。
+
+    ```bash
+    docker compose exec php php artisan migrate --seed
+    ```
+
+## 機能
+
+- ログイン・ログアウト
+- 未完了ToDoの一覧表示
+- 完了済みToDoの一覧表示
+- ToDoの詳細表示
+- ToDoの登録
+- 未完了ToDoの編集
+- ToDoの完了
+- ToDoの削除
+
+ToDoはログインユーザーごとに管理されます。他のユーザーのToDoは表示、編集、完了、削除できません。
+また、完了済みのToDoは編集できません。
+
+## ToDoの入力項目
+
+| 項目 | 必須 | 入力条件 |
+| --- | --- | --- |
+| タイトル | 必須 | 1文字以上255文字以内 |
+| 本文 | 任意 | 10,000文字以内 |
+| 期限 | 任意 | 今日以降の日付 |
+
+## ログイン情報
+
+データベースの初期データを登録すると、次の授業用ユーザーでログインできます。
+
+```text
+メールアドレス: todo@example.com
+パスワード: password
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+この認証情報は授業用の開発環境だけで使用してください。本番環境では使用しないでください。
 
-## Contributing
+初期データの登録方法は「インストール」を参照してください。
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## アクセス方法
 
-## Code of Conduct
+Docker Composeの起動後、ブラウザで次のURLを開きます。`WEB_PORT`には、
+リポジトリ直下の`.env`で設定したポート番号を指定してください。
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```text
+http://localhost:<WEB_PORT>/
+```
 
-## Security Vulnerabilities
+## テスト
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+テストはリポジトリ直下で実行します。
 
-## License
+```bash
+docker compose exec php composer test
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+テストでは`app_testing`データベースを使用します。未作成の場合は、テスト実行前に作成してください。
+
+```bash
+docker compose exec mysql mysql -u root -proot -e "CREATE DATABASE IF NOT EXISTS app_testing;"
+```
+
+## 主な技術構成
+
+- PHP 8.5
+- Laravel 13
+- MySQL 8.0
+- nginx
+- Docker Compose
+- PHPUnit 12
+
+RedisコンテナとPHPのRedis拡張も開発環境に含まれていますが、現在のアプリケーションでは
+セッション、キャッシュ、キューにRedisを使用していません。
