@@ -18,18 +18,18 @@ class AuthController extends Controller
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required'],
+            // 今はBCRYPTのため72文字が上限。ハッシュがBCRYPTでなくなったら数値を見直すか、maxを外す。
+            'password' => ['required', 'max:72'],
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-
-            return redirect()->intended('/top');
+        if (false === Auth::attempt($credentials)) {
+            return back()->withErrors([
+                'email' => 'メールアドレスまたはパスワードが正しくありません。',
+            ])->onlyInput('email');
         }
 
-        return back()->withErrors([
-            'email' => 'メールアドレスまたはパスワードが正しくありません。',
-        ])->onlyInput('email');
+        $request->session()->regenerate();
+        return redirect()->intended('/top');
     }
 
     public function logout(Request $request): RedirectResponse

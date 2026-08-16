@@ -26,7 +26,7 @@ return new class extends Migration
             // 未完了の場合はNULL、完了した場合は完了日時を保存します。
             $table->dateTime('completed_at')->nullable();
 
-            $table->timestamps();
+            $table->datetimes();
         });
     }
 
