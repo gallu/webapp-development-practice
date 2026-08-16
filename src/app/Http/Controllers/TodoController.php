@@ -56,11 +56,7 @@ class TodoController extends Controller
      */
     public function show(Request $request, int $todoId): View
     {
-        // URLのIDだけで検索すると、他のユーザーのToDoも取得できてしまいます。
-        // ログインユーザーのIDでも絞り込み、自分のToDoだけを表示できるようにします。
-        $todo = Todo::query()
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($todoId);
+        $todo = $this->getTodo($request->user()->id, $todoId);
 
         return view('todos.show', compact('todo'));
     }
@@ -70,9 +66,7 @@ class TodoController extends Controller
      */
     public function edit(Request $request, int $todoId): View|RedirectResponse
     {
-        $todo = Todo::query()
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($todoId);
+        $todo = $this->getTodo($request->user()->id, $todoId);
 
         // 完了済みのToDoは編集画面を表示せず、詳細画面へ戻します。
         if ($todo->completed_at !== null) {
@@ -89,9 +83,7 @@ class TodoController extends Controller
      */
     public function update(TodoRequest $request, int $todoId): RedirectResponse
     {
-        $todo = Todo::query()
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($todoId);
+        $todo = $this->getTodo($request->user()->id, $todoId);
 
         // URLを直接操作された場合も、完了済みのToDoは更新しません。
         if ($todo->completed_at !== null) {
@@ -113,9 +105,7 @@ class TodoController extends Controller
      */
     public function complete(Request $request, int $todoId): RedirectResponse
     {
-        $todo = Todo::query()
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($todoId);
+        $todo = $this->getTodo($request->user()->id, $todoId);
 
         // 完了日時を上書きしないため、完了済みの場合はsave()を呼びません。
         if ($todo->completed_at !== null) {
@@ -137,17 +127,26 @@ class TodoController extends Controller
      */
     public function destroy(Request $request, int $todoId): RedirectResponse
     {
-        // ログインユーザーのToDoだけを削除対象として取得します。
-        // 他のユーザーのToDoを指定した場合は404を返します。
-        $todo = Todo::query()
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($todoId);
+        $todo = $this->getTodo($request->user()->id, $todoId);
 
         $todo->delete();
 
         return redirect()
             ->route('top')
             ->with('success', 'ToDoを削除しました。');
+    }
+
+    /**
+     * 指定したユーザーのToDoを1件取得します。
+     *
+     * URLのIDだけで検索すると、他のユーザーのToDoも取得できてしまいます。
+     * ログインユーザーのIDでも絞り込み、見つからない場合は404を返します。
+     */
+    private function getTodo(int $userId, int $todoId): Todo
+    {
+        return Todo::query()
+            ->where('user_id', $userId)
+            ->findOrFail($todoId);
     }
 
     /**
