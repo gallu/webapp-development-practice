@@ -1,10 +1,10 @@
-# Docker App Skeleton
+# Web Application Development Practice
 
 開発用のシンプルな Docker ベース環境です。  
 PHP（php-fpm）・nginx・MySQL・Redis を含む基本構成を提供し、  
-任意の PHP フレームワーク（Laravel / Slim / Plain PHP など）を `src/` に配置して利用できます。
+`src/` に配置した Laravel 製のToDoアプリケーションを実行できます。
 
-このリポジトリは、自分用の開発テンプレートとして作成したものです。
+ToDoアプリケーションには、ログイン、ToDoの登録・一覧・詳細・編集・完了・削除機能があります。
 
 ---
 
@@ -37,8 +37,11 @@ composer create-project gallu/docker-app-skeleton [my-app-name]
 │   ├─ db/
 │   └─ logs/
 ├─ src/
-│   └─ public/
-│        └─ index.php
+│   ├─ app/
+│   ├─ database/
+│   ├─ resources/
+│   ├─ routes/
+│   └─ tests/
 └─ scripts/
     └─ setup.sh
 ```
@@ -53,16 +56,12 @@ composer create-project gallu/docker-app-skeleton [my-app-name]
 sh ./scripts/setup.sh
 ```
 
-### 2. 例えば Laravel を使う場合
+### 2. Laravelアプリケーションの準備
 
-`src/` 配下に Laravel をインストールする例です。
+`src/` にはLaravelアプリケーションが配置済みです。`src/` で新たに
+`composer create-project` を実行する必要はありません。
 
-```
-cd src
-composer create-project laravel/laravel .
-```
-
-その後、`src/public/` が Web root として nginx から参照されます。
+`src/public/` がWeb rootとしてnginxから参照されます。
 
 ---
 
@@ -120,11 +119,18 @@ try {
 
 ## Redis
 
-```php
-<?php
-$redis = new Redis();
-$redis->connect('redis', 6379);
-echo "PING: " . $redis->ping();
+RedisコンテナとPHPのRedis拡張は利用できますが、現在のToDoアプリケーションでは
+セッション、キャッシュ、キューにRedisを使用していません。これらには`database`
+ドライバーを使用し、`DB_CONNECTION`で指定したデータベースへ保存します。
+
+LaravelからRedisを利用する場合、PHPコンテナ内から接続するホスト名は`redis`です。
+`src/.env`の`REDIS_HOST`を次のように設定し、用途に応じて`CACHE_STORE`、
+`SESSION_DRIVER`、`QUEUE_CONNECTION`を`redis`へ変更してください。
+
+```dotenv
+REDIS_CLIENT=phpredis
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
 ---
@@ -144,6 +150,12 @@ echo "PING: " . $redis->ping();
 永続化ボリュームは削除しません。
 
     make down
+
+### permissions
+Laravelが書き込む`src/storage/`と`src/bootstrap/cache/`について、PHP-FPMの実行ユーザーが
+書き込めるようにグループとパーミッションを調整します。コンテナの起動後に実行してください。
+
+    make permissions
 
 ### clean
 この docker-compose プロジェクトで生成されたリソースのみを削除します。
@@ -185,5 +197,5 @@ Docker のあらゆる不要データを削除しますが、他プロジェク�
 ---
 ## 注意事項
 
-- `src/` は .gitignore 対象です。任意のアプリケーションを配置してください。
+- `src/` のLaravelアプリケーションはGit管理対象です。
 - `storage/` は永続化領域です（DB・ログなど）。
