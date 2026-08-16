@@ -125,8 +125,8 @@ docker compose exec mysql mysql -u root -proot -e "CREATE DATABASE IF NOT EXISTS
 
 - PHP 8.5
 - Laravel 13
-- MySQL 8.0
-- nginx
+- MySQL 9.7
+- nginx 1.31
 - Docker Compose
 - PHPUnit 12
 
