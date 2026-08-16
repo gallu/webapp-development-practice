@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreTodoRequest;
-use App\Http\Requests\UpdateTodoRequest;
+use App\Http\Requests\TodoRequest;
 use App\Models\Todo;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -35,7 +34,7 @@ class TodoController extends Controller
     /**
      * 入力された内容でToDoを追加します。
      */
-    public function store(StoreTodoRequest $request): RedirectResponse
+    public function store(TodoRequest $request): RedirectResponse
     {
         $todo = new Todo;
 
@@ -88,7 +87,7 @@ class TodoController extends Controller
     /**
      * 編集された内容でToDoを更新します。
      */
-    public function update(UpdateTodoRequest $request, int $todoId): RedirectResponse
+    public function update(TodoRequest $request, int $todoId): RedirectResponse
     {
         $todo = Todo::query()
             ->where('user_id', $request->user()->id)
