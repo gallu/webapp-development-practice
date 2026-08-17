@@ -7,8 +7,24 @@ Docker環境の構成、起動方法、停止方法については、[リポジ�
 
 ## インストール
 
-コマンドはリポジトリ直下で実行します。  
-git から clone した以降の作業になります。  
+教材は次の ZIP から入手し、展開してください。
+
+https://github.com/gallu/webapp-development-practice/archive/refs/heads/main.zip
+
+元のリポジトリは [gallu/webapp-development-practice](https://github.com/gallu/webapp-development-practice/) です。このリポジトリを `git clone` しないでください。
+clone すると、コミットの送り先が講師のリポジトリのままになります。
+
+展開したディレクトリで、自分の GitHub アカウントにリポジトリを作成し、そこにコミットと push をしてください。
+
+```bash
+git init
+git add .
+git commit -m "授業用教材の展開"
+```
+
+GitHub 上に空のリポジトリを作り、画面に表示される `git remote add origin` と `git push` を実行します。
+
+以降のコマンドは、展開したディレクトリ直下（`docker-compose.yml` がある場所）で実行します。
 
 1. Docker Compose用の環境設定ファイルを作成します。
 
