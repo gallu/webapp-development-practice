@@ -72,7 +72,7 @@ services:
       # - ./storage/db:/var/lib/mysql
       #
       # named volume: Docker が管理する。make down では残る。
-      # make clean（--volumes）や make disintegrate、docker volume prune では消える。
+      # make clean では残り、make disintegrate（--volumes）では消える。
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
 

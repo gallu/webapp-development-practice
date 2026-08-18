@@ -40,6 +40,8 @@ ToDoアプリケーションのインストールとブラウザからのアク�
 先にリポジトリ直下で `.env.sample` を `.env` にコピーし、
 `COMPOSE_PROJECT_NAME` と `WEB_PORT` を環境に合わせて変更してください。
 `.env.sample` の `studentXX` と `80XX` はプレースホルダなので、指定された値に置き換えます。
+同じVPSを利用する他の学生とリソースが混在しないように、`COMPOSE_PROJECT_NAME` と
+`WEB_PORT` は学生ごとに異なる値を指定してください。
 
 ```
 cp .env.sample .env
@@ -92,34 +94,24 @@ Laravelが書き込む`src/storage/`と`src/bootstrap/cache/`について、PHP-
 - コンテナ
 - ネットワーク
 - このプロジェクト内でビルドされたイメージ
-- このプロジェクト内で作成されたボリューム（MySQLの`mysql_data`を含む）
+- 不要になったorphanコンテナ
 
-他プロジェクトには影響しません。
+MySQLのnamed volume（`mysql_data`）は削除しません。
+他の学生と異なる`COMPOSE_PROJECT_NAME`を設定している限り、他プロジェクトには影響しません。
 
     make clean
 
-### all-clean
-Docker 全体に対して `docker system prune -f` を実行します。
-以下が削除されます：
-- 停止中のすべてのコンテナ
-- 未使用のネットワーク
-- 参照されていないイメージ
-- Build キャッシュ
-
-複数の Docker プロジェクトを扱っている場合は注意してください。
-
-    make all-clean
-
 ### disintegrate
-Docker 全体に対して最も強力なクリーンアップを実行します。
+この docker-compose プロジェクトを、MySQLのデータを含めて初期状態に戻します。
 以下が削除対象です：
-- 停止中のすべてのコンテナ
-- 未使用のネットワーク
-- 未使用のイメージ（すべて）
-- 未使用のボリューム（すべて）
+- コンテナ
+- ネットワーク
+- このプロジェクト内でビルドされたイメージ
+- 不要になったorphanコンテナ
+- このプロジェクトのnamed volume（MySQLの`mysql_data`を含む）
 
-Docker のあらゆる不要データを削除しますが、他プロジェクトのデータも含めて完全に消去されます。
-慎重に利用してください。
+MySQLのデータは復元できないため、初期状態へ戻したい場合のみ使用してください。
+他の学生と異なる`COMPOSE_PROJECT_NAME`を設定している限り、他プロジェクトには影響しません。
 
     make disintegrate
 
@@ -128,7 +120,7 @@ Docker のあらゆる不要データを削除しますが、他プロジェク�
 
 - `src/` のLaravelアプリケーションはGit管理対象です。
 - MySQLのデータはnamed volume（`mysql_data`）に保存されます。
-  `make down`では残り、`make clean`や`make disintegrate`では削除されます。
+  `make down`と`make clean`では残り、`make disintegrate`では削除されます。
 - `storage/` はログなどの作業領域です。既定ではデータベースファイルは置きません。
 - ホストの`storage/db`に永続化（bind mount）する場合は、次を変更します。
   - `docker-compose.yml`: `./storage/db:/var/lib/mysql` のコメントを外し、`mysql_data:/var/lib/mysql` をコメントアウトする。末尾の `volumes: mysql_data` も使わない。
