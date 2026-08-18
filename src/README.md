@@ -7,9 +7,12 @@ Docker環境の構成、起動方法、停止方法については、[リポジ�
 
 ## インストール
 
-教材は次の ZIP から入手し、展開してください。
+教材は次の ZIP から入手し、展開してください。  
 
-https://github.com/gallu/webapp-development-practice/archive/refs/heads/main.zip
+```bash
+unzip main.zip
+cd webapp-development-practice-main
+```
 
 元のリポジトリは [gallu/webapp-development-practice](https://github.com/gallu/webapp-development-practice/) です。このリポジトリを `git clone` しないでください。
 clone すると、コミットの送り先が講師のリポジトリのままになります。
