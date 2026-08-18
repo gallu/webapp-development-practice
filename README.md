@@ -1,20 +1,10 @@
 # Web Application Development Practice
 
 開発用のシンプルな Docker ベース環境です。  
-PHP（php-fpm）・nginx・MySQL・Redis を含む基本構成を提供し、  
+PHP（php-fpm）・nginx・MySQL を含む基本構成を提供し、  
 `src/` に配置した Laravel 製のToDoアプリケーションを実行できます。
 
-ToDoアプリケーションには、ログイン、ToDoの登録・一覧・詳細・編集・完了・削除機能があります。
-
----
-
-## セットアップ
-
-インストールは以下のようにします。
-
-```bash
-composer create-project gallu/docker-app-skeleton [my-app-name]
-```
+ToDoアプリケーションのインストールとブラウザからのアクセスは、[`src/README.md`](src/README.md) を参照してください。
 
 ---
 
@@ -45,52 +35,23 @@ composer create-project gallu/docker-app-skeleton [my-app-name]
     └─ setup.sh
 ```
 
----
-
-## セットアップ手順
-
-### 1. 初期ディレクトリ作成
-
-```
-sh ./scripts/setup.sh
-```
-
-### 2. Laravelアプリケーションの準備
-
-`src/` にはLaravelアプリケーションが配置済みです。`src/` で新たに
-`composer create-project` を実行する必要はありません。
-
-`src/public/` がWeb rootとしてnginxから参照されます。
-
----
-
 ## 起動
 
 先にリポジトリ直下で `.env.sample` を `.env` にコピーし、
 `COMPOSE_PROJECT_NAME` と `WEB_PORT` を環境に合わせて変更してください。
+`.env.sample` の `studentXX` と `80XX` はプレースホルダなので、指定された値に置き換えます。
 
 ```
 cp .env.sample .env
-docker compose up --build -d
+# .env を修正
+make up
 ```
-
-`.env.sample` の初期値では `WEB_PORT=8081` です。
 
 ## 停止
 
 ```
-docker compose down
+make down
 ```
-
-## PHP へのアクセス
-
-`.env` の `WEB_PORT` で公開したポートにアクセスします。
-
-```
-http://localhost:<WEB_PORT>/
-```
-
-初期値のままなら `http://localhost:8081/` です。
 
 ---
 
@@ -99,47 +60,6 @@ http://localhost:<WEB_PORT>/
 ```
 docker compose exec mysql bash
 mysql -u root -p
-```
-
----
-
-## PHP → MySQL 接続例
-
-src/public/test_mysql.php:
-
-```php
-<?php
-
-try {
-    $pdo = new PDO(
-        'mysql:host=mysql;dbname=app;charset=utf8mb4',
-        'app',
-        'app',
-        [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION ]
-    );
-
-    echo "OK: Connected to MySQL\n";
-} catch (PDOException $e) {
-    echo "NG: " . $e->getMessage();
-}
-```
-
----
-
-## Redis
-
-RedisコンテナとPHPのRedis拡張は利用できますが、現在のToDoアプリケーションでは
-セッション、キャッシュ、キューにRedisを使用していません。これらには`database`
-ドライバーを使用し、`DB_CONNECTION`で指定したデータベースへ保存します。
-
-LaravelからRedisを利用する場合、PHPコンテナ内から接続するホスト名は`redis`です。
-`src/.env`の`REDIS_HOST`を次のように設定し、用途に応じて`CACHE_STORE`、
-`SESSION_DRIVER`、`QUEUE_CONNECTION`を`redis`へ変更してください。
-
-```dotenv
-REDIS_CLIENT=phpredis
-REDIS_HOST=redis
-REDIS_PORT=6379
 ```
 
 ---
