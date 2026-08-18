@@ -1,42 +1,46 @@
-.PHONY: up down permissions clean exec-php exec-mysql ps logs all-clean disintegrate
+.PHONY: up down permissions clean exec-php exec-mysql ps logs disintegrate
 
+# Docker環境を起動
 up:
 	docker compose up -d --build
 
+# Docker環境を停止・削除
+# DBなどのvolumeは残す
 down:
 	docker compose down
 
-# Laravel用 パーミッションの調整
+# Laravel用パーミッションの調整
+# storage と bootstrap/cache を php-fpm(www-data) から書き込み可能にする
 permissions:
 	docker compose exec -u root php sh -c '\
 		chgrp -R www-data storage bootstrap/cache && \
 		chmod -R g+rwX storage bootstrap/cache && \
 		find storage bootstrap/cache -type d -exec chmod g+s {} \;'
 
-# プロジェクト専用クリーン（最も安全）
+# プロジェクト単位のクリーンアップ
+# コンテナ、ネットワーク、ローカルimage、不要なorphansを削除する
+# DBなどのvolumeは残す
 clean:
-	docker compose down --rmi local --volumes
+	docker compose down --rmi local --remove-orphans
 
-# Exec into app container
+# PHPコンテナへ入る
 exec-php:
 	docker compose exec php bash
 
-# Exec into mysql container
+# MySQLコンテナへ入る
 exec-mysql:
 	docker compose exec mysql bash
 
-# Show container process list
+# このComposeプロジェクトのコンテナ状態を表示
 ps:
 	docker compose ps
 
-# Tail logs for all services
+# 全サービスのログを追跡表示
 logs:
 	docker compose logs -f
 
-# Docker 全域の軽めクリーン
-all-clean:
-	docker system prune -f
-
-# Docker 全域の完全破壊
+# このComposeプロジェクトをDBデータ込みで完全に削除
+# named volumeも削除されるため、MySQLのデータも消える
+# 初期状態へ戻したい場合のみ使用する
 disintegrate:
-	docker system prune -a --volumes -f
+	docker compose down --rmi local --volumes --remove-orphans
