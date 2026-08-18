@@ -10,7 +10,9 @@ Docker環境の構成、起動方法、停止方法については、[リポジ�
 教材は次の ZIP から入手し、展開してください。  
 
 ```bash
+wget https://github.com/gallu/webapp-development-practice/archive/refs/heads/main.zip
 unzip main.zip
+rm main.zip
 cd webapp-development-practice-main
 ```
 
