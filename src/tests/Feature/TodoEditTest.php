@@ -44,8 +44,9 @@ class TodoEditTest extends TestCase
             'id' => $todo->id,
             'title' => '更新後のタイトル',
             'body' => '更新後の本文',
-            'due_date' => today()->addDay()->format('Y-m-d'),
         ]);
+        $todo->refresh();
+        $this->assertTrue($todo->due_date->isSameDay(today()->addDay()));
     }
 
     public function test_todo_is_not_updated_when_due_date_is_in_the_past(): void
