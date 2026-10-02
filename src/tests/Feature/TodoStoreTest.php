@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -32,9 +33,16 @@ class TodoStoreTest extends TestCase
             'user_id' => $user->id,
             'title' => 'Laravelの復習',
             'body' => '認証とバリデーションを確認する。',
-            'due_date' => today()->addDay()->format('Y-m-d'),
             'completed_at' => null,
         ]);
+
+        $todo = Todo::query()
+            ->where('user_id', $user->id)
+            ->where('title', 'Laravelの復習')
+            ->first();
+
+        $this->assertNotNull($todo);
+        $this->assertTrue($todo->due_date->isSameDay(today()->addDay()));
     }
 
     public function test_todo_is_not_stored_when_input_is_invalid(): void
